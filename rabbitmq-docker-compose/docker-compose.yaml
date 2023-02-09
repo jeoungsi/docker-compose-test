@@ -1,0 +1,36 @@
+################################################################
+# RabbitMQ Docker Compose Demo
+# Author: woong.choi@solu-m.com
+# Purpose: RabbitMQ demo for customer reference.
+################################################################
+# logs        /var/log/rabbitmq/~
+# config file /etc/rabbitmq/~
+# home dir    /var/lib/rabbitmq
+version: "3.8"
+services:
+
+  rabbit1:
+    image: rabbitmq:3-management-alpine
+    container_name: aims-rabbitmq
+    hostname: aims-rabbitmq-1
+    restart: unless-stopped
+    environment:
+      RABBITMQ_NODENAME: rabbitmq # nodename created => rabbitmq@aims-rabbitmq-1
+      RABBITMQ_CONFIG_FILE: /etc/rabbitmq/rabbitmq.conf # configuration file
+      #TZ: Asia/Seoula # not supported
+    ports:
+      - "5671:5671" # used by AMQP with ssl
+      - "15672:15672" # HTTP API clients, management UI and rabbitmqadmin
+      #- "5672:5672" # used by AMQP without ssl
+      #- "15671:15671" # HTTPS API clients, management UI and rabbitmqadmin
+      - "4369:4369" # a peer discovery service used by RabbitMQ
+      - "25672:25672" # used for inter-node and CLI tools communication
+    volumes:
+      - ./config:/etc/rabbitmq/
+      - ./data:/var/lib/rabbitmq/mnesia/
+      - ./log:/var/log/rabbitmq/
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3

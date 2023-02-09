@@ -1,0 +1,58 @@
+################################################################
+# Postgres Docker Compose Demo
+# Author: woong.choi@solu-m.com
+# Purpose: Postgres database demo for customer reference.
+################################################################
+version: '3.8'
+services:
+
+  aims-postgres:
+    image: postgres:14-alpine
+    container_name: aims-postgres
+    restart: unless-stopped
+    #shm_size: 256M # 64.0M default, when shared memory is exhausted
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: '0.50'
+    ports:
+      - 5432:5432
+    environment:
+      TZ: Asia/Seoul
+      # password setting in a host file.
+      #POSTGRES_USER_FILE: /run/secrets/postgres-user-host
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-passwd-host
+      # password setting in a memory.
+      #POSTGRES_PASSWORD_FILE: /run/secrets/postgres-passwd
+      # password setting in a docker-compose file.
+      #POSTGRES_PASSWORD: aims
+      #POSTGRES_USER: aims
+    volumes:
+      # when postgres initialization
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+      # when host data folder is current directory.
+      - ./data:/var/lib/postgresql/data
+      #- ./config/postgres.conf:/etc/postgresql/postgresql.conf
+      #command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    secrets:
+      - postgres-passwd-host
+      - postgres-user-host
+      # - postgres-passwd
+secrets:
+  # manage the password in a file
+  postgres-passwd-host:
+    file: ./secrets/postgres_password.txt
+  postgres-user-host:
+    file: ./secrets/postgres_user.txt
+  # manage the password in a memory, but neet to be run secrest script before, and swarm mode on.
+  # echo "aims" | docker secret create postgres-passwd -
+  #postgres-passwd:
+  #  external: true
+networks:
+  aims-postgres-network:

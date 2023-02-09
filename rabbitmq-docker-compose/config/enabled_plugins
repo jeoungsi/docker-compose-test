@@ -1,0 +1,1 @@
+[rabbitmq_management,rabbitmq_management_agent, prometheus, accept, amqp_client, rabbitmq_web_dispatch, cowboy, cowlib, rabbitmq_prometheus].
